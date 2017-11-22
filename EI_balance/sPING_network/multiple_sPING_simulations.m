@@ -1,4 +1,6 @@
-params.sim_length=10000; % [ms]
+params.sim_length=1000; % [ms]
+params.Enoise=0; %40 originally
+params.Inoise=0; %40 originally
 Poisson_rate=1000; % [Hz] for all external Poisson input
 EgAMPA=0.05:0.05:0.5;
 IgAMPA=0.05:0.05:0.5;
@@ -30,8 +32,8 @@ for k=1:length(EgAMPA) % conductance range for external AMPA input
         eiratio(k,o)=mean(data.E_iPoissonAMPA_gPoissonAMPA)/mean(data.E_iPoissonGABAA_gPoissonGABAA);
         
         % compute power spectra of intranetwork and external synaptic currents
-        [f_intranetwork_syn,P_intranetwork_syn]=power_spectrum(mean(data.E_I_iGABAa_ISYN(10001:end,:),2)); % only GABA since intranetwork synpatic AMPA is not in pyramidal neurons
-        [f_applied_syn,P_applied_syn]=power_spectrum(mean(data.E_iPoissonAMPA_IPoissonAMPA(10001:end,:)+data.E_iPoissonGABAA_IPoissonGABAA(10001:end,:),2)); % only external Poisson inputs to pyramidal neurons
+        [f_intranetwork_syn,P_intranetwork_syn]=power_spectrum(mean(data.E_I_iGABAa_ISYN(30001:end,:),2)); % only GABA since intranetwork synpatic AMPA is not in pyramidal neurons
+        [f_applied_syn,P_applied_syn]=power_spectrum(mean(data.E_iPoissonAMPA_IPoissonAMPA(30001:end,:)+data.E_iPoissonGABAA_IPoissonGABAA(30001:end,:),2)); % only external Poisson inputs to pyramidal neurons
         
         % compute linear regression of 30-50 Hz for both intranetwork and external synaptic currents
         fitstats_intranetwork_syn(k,o)=regstats(log10(P_intranetwork_syn(80:132)),log10(f_intranetwork_syn(80:132)),'linear',{'yhat','rsquare','beta'});
