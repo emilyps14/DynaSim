@@ -1,0 +1,30 @@
+% Poisson input
+
+% poisson parameters
+baselineGABAA=0;     % Hz, baseline rate
+DCGABAA=2000;        % Hz, steady component of the signal
+ACGABAA=0;           % Hz, oscillatory component of the signal
+fGABAA=0;            % Hz, modulation frequency of the signal
+phiGABAA=0;          % radians, phase at which the signal begins
+onsetGABAA=0;        % ms, start time of signal
+offsetGABAA=inf;     % ms, stop time of signal
+
+% synaptic parameters
+gextGABAA=.01;       % max synaptic conductance
+EextGABAA=-80;         % mV, synaptic reversal potential
+tauGABAA=10;          % ms, synaptic time constant
+
+% poisson conductance
+s=getPoissonGating(baselineGABAA,DCGABAA,ACGABAA,fGABAA,phiGABAA,onsetGABAA,offsetGABAA,tauGABAA,T,Npop);
+
+% scaled conductance
+gPoissonGABAA(t)=gextGABAA.*s(k,:)
+
+% input synaptic current
+IPoissonGABAA(v)=-gPoissonGABAA(t).*(v-EextGABAA);
+
+% monitor
+monitor gPoissonGABAA
+
+% linker
+@current += IPoissonGABAA(v)

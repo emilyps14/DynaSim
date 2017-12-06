@@ -1,0 +1,30 @@
+% Poisson input
+
+% poisson parameters
+baselineAMPA=0;     % Hz, baseline rate
+DCAMPA=2000;        % Hz, steady component of the signal
+ACAMPA=0;           % Hz, oscillatory component of the signal
+fAMPA=0;            % Hz, modulation frequency of the signal
+phiAMPA=0;          % radians, phase at which the signal begins
+onsetAMPA=0;        % ms, start time of signal
+offsetAMPA=inf;     % ms, stop time of signal
+
+% synaptic parameters
+gextAMPA=.01;       % max synaptic conductance
+EextAMPA=0;         % mV, synaptic reversal potential
+tauAMPA=2;          % ms, synaptic time constant
+
+% poisson conductance
+s=getPoissonGating(baselineAMPA,DCAMPA,ACAMPA,fAMPA,phiAMPA,onsetAMPA,offsetAMPA,tauAMPA,T,Npop);
+
+% scaled conductance
+gPoissonAMPA(t)=gextAMPA.*s(k,:)
+
+% input synaptic current
+IPoissonAMPA(v)=-gPoissonAMPA(t).*(v-EextAMPA);
+
+% monitor
+monitor gPoissonAMPA
+
+% linker
+@current += IPoissonAMPA(v)

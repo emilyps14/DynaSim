@@ -1,0 +1,14 @@
+% Sinusoidal input
+
+% Sinusoidal input parameters
+sinef=0.01;   % kHz, frequency of the sine wave
+sineA=2000; % pA?, amplitude of the sine wave
+sinephi=0;  % radians, phase shift of the sine wave
+sineE=0;     % mV, reversal for sinusoidal current
+
+gsine(t)=sineA*sin(2*pi*sinef*t+sinephi);
+
+Isine(X)=gsine(t)*(X-sineE);
+
+% linker
+@current += Isine(X)
