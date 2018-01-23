@@ -6,8 +6,10 @@ gGABAA=0.00005:0.00005:0.0005;
 eiratio=zeros(length(gAMPA),length(gGABAA));
 fAMPA=zeros(length(gAMPA),length(gGABAA),3146);
 PAMPA=zeros(length(gAMPA),length(gGABAA),3146);
+total_PAMPA=zeros(length(gAMPA),length(gGABAA));
 fGABAA=zeros(length(gAMPA),length(gGABAA),3146);
 PGABAA=zeros(length(gAMPA),length(gGABAA),3146);
+total_PGABAA=zeros(length(gAMPA),length(gGABAA));
 f=zeros(length(gAMPA),length(gGABAA),3146);
 P=zeros(length(gAMPA),length(gGABAA),3146);
 
@@ -28,9 +30,13 @@ for k=1:length(gAMPA) % conductance range for external AMPA input
             };
         data=dsSimulate(eqns,'tspan',[0 sim_length]);
         eiratio(k,o)=mean(data.pop1_iPoissonAMPA_gPoissonAMPA)/mean(data.pop1_iPoissonGABAA_gPoissonGABAA);
+        % find the PSD of each of the signals
         [fAMPA(k,o,:),PAMPA(k,o,:)]=power_spectrum(data.pop1_iPoissonAMPA_IPoissonAMPA(50001:end,:)); % only external Poisson inputs to pyramidal neurons
         [fGABAA(k,o,:),PGABAA(k,o,:)]=power_spectrum(data.pop1_iPoissonGABAA_IPoissonGABAA(50001:end)); % only external Poisson inputs to pyramidal neurons
         [f(k,o,:),P(k,o,:)]=power_spectrum(data.pop1_iPoissonAMPA_IPoissonAMPA(50001:end,:)+data.pop1_iPoissonGABAA_IPoissonGABAA(50001:end)); % only external Poisson inputs to pyramidal neurons
+        % find the total power in the PSDs for each of the synaptic inputs
+        total_PAMPA(k,o)=trapz(reshape(fAMPA(k,o,:),1,[]),PAMPA(k,o,:));
+        total_PGABAA(k,o)=trapz(reshape(fGABAA(k,o,:),1,[]),PGABAA(k,o,:));
 %         [f_spiking,P_spiking]=power_spectrum(mean(data.pop1_iK_IK(10001:end,:)+data.pop1_iNa_INa(50001:end,:),2)); % spiking currents
         fitstatsAMPA(k,o)=regstats(log10(reshape(PAMPA(k,o,210:end),1,[])),log10(reshape(fAMPA(k,o,210:end),1,[])),'linear',{'yhat','rsquare','beta'}); %f(k,o,1050:end) ~ 30-50 Hz
         fitstatsGABAA(k,o)=regstats(log10(reshape(PGABAA(k,o,210:end),1,[])),log10(reshape(fGABAA(k,o,210:end),1,[])),'linear',{'yhat','rsquare','beta'}); %f(k,o,1050:end) ~ 30-50 Hz
@@ -51,16 +57,17 @@ for k=1:length(gAMPA) % conductance range for external AMPA input
     end
 end
 
+%Find the average PSD in each of the corners
 upper_leftAMPA=mean([reshape(PAMPA(1,1,:),1,[]);reshape(PAMPA(1,2,:),1,[]);reshape(PAMPA(2,1,:),1,[]);reshape(PAMPA(2,2,:),1,[])]);
-lower_rightAMPA=mean([reshape(PAMPA(9,9,:),1,[]);reshape(PAMPA(9,10,:),1,[]);reshape(PAMPA(10,9,:),1,[]);reshape(PAMPA(10,10,:),1,[])]);;
+lower_rightAMPA=mean([reshape(PAMPA(9,9,:),1,[]);reshape(PAMPA(9,10,:),1,[]);reshape(PAMPA(10,9,:),1,[]);reshape(PAMPA(10,10,:),1,[])]);
 lower_leftAMPA=mean([reshape(PAMPA(9,1,:),1,[]);reshape(PAMPA(9,2,:),1,[]);reshape(PAMPA(10,1,:),1,[]);reshape(PAMPA(10,2,:),1,[])]);
 upper_rightAMPA=mean([reshape(PAMPA(1,9,:),1,[]);reshape(PAMPA(1,10,:),1,[]);reshape(PAMPA(2,9,:),1,[]);reshape(PAMPA(2,10,:),1,[])]);
 upper_leftGABAA=mean([reshape(PGABAA(1,1,:),1,[]);reshape(PGABAA(1,2,:),1,[]);reshape(PGABAA(2,1,:),1,[]);reshape(PGABAA(2,2,:),1,[])]);
-lower_rightGABAA=mean([reshape(PGABAA(9,9,:),1,[]);reshape(PGABAA(9,10,:),1,[]);reshape(PGABAA(10,9,:),1,[]);reshape(PGABAA(10,10,:),1,[])]);;
+lower_rightGABAA=mean([reshape(PGABAA(9,9,:),1,[]);reshape(PGABAA(9,10,:),1,[]);reshape(PGABAA(10,9,:),1,[]);reshape(PGABAA(10,10,:),1,[])]);
 lower_leftGABAA=mean([reshape(PGABAA(9,1,:),1,[]);reshape(PGABAA(9,2,:),1,[]);reshape(PGABAA(10,1,:),1,[]);reshape(PGABAA(10,2,:),1,[])]);
 upper_rightGABAA=mean([reshape(PGABAA(1,9,:),1,[]);reshape(PGABAA(1,10,:),1,[]);reshape(PGABAA(2,9,:),1,[]);reshape(PGABAA(2,10,:),1,[])]);
 upper_left=mean([reshape(P(1,1,:),1,[]);reshape(P(1,2,:),1,[]);reshape(P(2,1,:),1,[]);reshape(P(2,2,:),1,[])]);
-lower_right=mean([reshape(P(9,9,:),1,[]);reshape(P(9,10,:),1,[]);reshape(P(10,9,:),1,[]);reshape(P(10,10,:),1,[])]);;
+lower_right=mean([reshape(P(9,9,:),1,[]);reshape(P(9,10,:),1,[]);reshape(P(10,9,:),1,[]);reshape(P(10,10,:),1,[])]);
 lower_left=mean([reshape(P(9,1,:),1,[]);reshape(P(9,2,:),1,[]);reshape(P(10,1,:),1,[]);reshape(P(10,2,:),1,[])]);
 upper_right=mean([reshape(P(1,9,:),1,[]);reshape(P(1,10,:),1,[]);reshape(P(2,9,:),1,[]);reshape(P(2,10,:),1,[])]);
 
@@ -72,6 +79,16 @@ xlabel('gGABAA')
 ylabel('gAMPA')
 title('AMPA only')
 figure;imagesc(0.00005:0.00005:0.0005,0.00005:0.00005:0.0005,PSDslopesGABAA)
+colorbar
+xlabel('gGABAA')
+ylabel('gAMPA')
+title('GABAA only')
+figure;imagesc(0.00005:0.00005:0.0005,0.00005:0.00005:0.0005,total_PAMPA)
+colorbar
+xlabel('gGABAA')
+ylabel('gAMPA')
+title('AMPA only')
+figure;imagesc(0.00005:0.00005:0.0005,0.00005:0.00005:0.0005,total_PGABAA)
 colorbar
 xlabel('gGABAA')
 ylabel('gAMPA')
